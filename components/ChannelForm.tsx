@@ -48,7 +48,15 @@ const EMPTY: ChannelFormValues = {
   notes: '',
 };
 
-export function ChannelForm({ channelId, initial }: { channelId?: string; initial?: Partial<ChannelFormValues> }) {
+export function ChannelForm({
+  channelId,
+  initial,
+  onLoginRequiredChange,
+}: {
+  channelId?: string;
+  initial?: Partial<ChannelFormValues>;
+  onLoginRequiredChange?: (value: boolean) => void;
+}) {
   const router = useRouter();
   const [values, setValues] = useState<ChannelFormValues>({ ...EMPTY, ...initial });
   const [saving, setSaving] = useState(false);
@@ -137,7 +145,14 @@ export function ChannelForm({ channelId, initial }: { channelId?: string; initia
           Requires account
         </label>
         <label className="flex items-center gap-2 text-sm text-ink/80">
-          <input type="checkbox" checked={values.loginRequired} onChange={(e) => set('loginRequired', e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={values.loginRequired}
+            onChange={(e) => {
+              set('loginRequired', e.target.checked);
+              onLoginRequiredChange?.(e.target.checked);
+            }}
+          />
           Login required
         </label>
         <label className="flex items-center gap-2 text-sm text-ink/80">

@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
-import { ChannelForm } from '@/components/ChannelForm';
 import { AutomationProfileForm } from '@/components/AutomationProfileForm';
-import { LoginSetupPanel } from '@/components/LoginSetupPanel';
+import { ChannelDetailsSection } from '@/components/ChannelDetailsSection';
 import { TestAutomationPanel } from '@/components/TestAutomationPanel';
 import { StatusPill } from '@/components/StatusPill';
 import { parseFieldMapping } from '@/lib/automation/fieldMapping';
@@ -41,32 +40,26 @@ export default async function ChannelDetailPage({ params }: { params: { id: stri
         </span>
       </div>
 
-      {channel.loginRequired && (
-        <LoginSetupPanel channelId={channel.id} status={(channel.browserProfile?.status ?? 'not_configured') as never} />
-      )}
-
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink/50">Channel details</h2>
-        <ChannelForm
-          channelId={channel.id}
-          initial={{
-            name: channel.name,
-            website: channel.website,
-            submissionUrl: channel.submissionUrl ?? '',
-            country: channel.country ?? '',
-            region: channel.region ?? '',
-            channelType: channel.channelType as never,
-            description: channel.description ?? '',
-            isFree: channel.isFree,
-            requiresAccount: channel.requiresAccount,
-            loginRequired: channel.loginRequired,
-            automationStatus: channel.automationStatus as never,
-            automationSupportLevel: channel.automationSupportLevel as never,
-            enabled: channel.enabled,
-            notes: channel.notes ?? '',
-          }}
-        />
-      </section>
+      <ChannelDetailsSection
+        channelId={channel.id}
+        browserProfileStatus={(channel.browserProfile?.status ?? 'not_configured') as never}
+        initial={{
+          name: channel.name,
+          website: channel.website,
+          submissionUrl: channel.submissionUrl ?? '',
+          country: channel.country ?? '',
+          region: channel.region ?? '',
+          channelType: channel.channelType as never,
+          description: channel.description ?? '',
+          isFree: channel.isFree,
+          requiresAccount: channel.requiresAccount,
+          loginRequired: channel.loginRequired,
+          automationStatus: channel.automationStatus as never,
+          automationSupportLevel: channel.automationSupportLevel as never,
+          enabled: channel.enabled,
+          notes: channel.notes ?? '',
+        }}
+      />
 
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink/50">Automation profile</h2>
