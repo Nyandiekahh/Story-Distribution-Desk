@@ -1,0 +1,34 @@
+node_modules/
+.next/
+out/
+dist/
+
+# env
+.env
+.env.local
+.env*.local
+
+# database
+prisma/dev.db
+prisma/dev.db-journal
+*.db
+*.db-journal
+
+# playwright
+/playwright-profiles/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/public/uploads/
+/storage/screenshots/
+
+# logs
+*.log
+npm-debug.log*
+
+# misc
+.DS_Store
+*.pem
+.vercel
+_to_delete/

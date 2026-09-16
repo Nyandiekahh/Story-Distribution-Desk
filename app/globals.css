@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-paper text-ink antialiased;
+}
+
+/* A handful of small, hand-named component classes instead of a big
+   utility soup repeated on every element — easier to scan and change. */
+
+.card {
+  @apply rounded-md border border-line bg-white p-5 shadow-sm;
+}
+
+.field-label {
+  @apply mb-1 block text-sm font-medium text-ink/80;
+}
+
+.input {
+  @apply w-full rounded border border-line bg-white px-3 py-2 text-sm text-ink placeholder:text-ink/40 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent;
+}
+
+.textarea {
+  @apply input min-h-[120px] font-normal leading-relaxed;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-1.5 rounded border px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.btn-primary {
+  @apply btn border-accent bg-accent text-white hover:bg-accent/90;
+}
+
+.btn-secondary {
+  @apply btn border-line bg-white text-ink hover:bg-accentSoft;
+}
+
+.btn-danger {
+  @apply btn border-bad/30 bg-white text-bad hover:bg-badSoft;
+}
+
+.btn-ghost {
+  @apply btn border-transparent bg-transparent text-ink/70 hover:bg-ink/5;
+}
+
+.pill {
+  @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+}
+
+.table-wrap {
+  @apply overflow-x-auto rounded-md border border-line;
+}
+
+table.data {
+  @apply w-full border-collapse text-sm;
+}
+
+table.data th {
+  @apply border-b border-line bg-ink/[0.03] px-3 py-2 text-left font-medium text-ink/70;
+}
+
+table.data td {
+  @apply border-b border-line px-3 py-2 align-top;
+}
+
+table.data tr:last-child td {
+  @apply border-b-0;
+}
+
+.mono {
+  @apply font-mono text-[13px];
+}

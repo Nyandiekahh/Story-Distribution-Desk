@@ -1,0 +1,333 @@
+// Story Distribution Desk — data model
+//
+// SQLite has no native enum type, so fields that are conceptually enums
+// (status, mode, channelType, ...) are plain strings. The allowed values
+// for each one live as TypeScript union types + zod schemas in
+// lib/types.ts, and every write path validates against those before it
+// touches the database. Comments below list the values a field expects.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Stories
+// ---------------------------------------------------------------------------
+
+model Story {
+  id String @id @default(cuid())
+
+  headline String
+  category String?
+  summary  String? // one-line summary
+  body     String
+
+  posterPath    String? // locally stored poster/image, if uploaded
+  imageUrl      String? // externally hosted image, if used instead
+  referenceLink String? // source/reference link
+
+  authorName     String?
+  targetCountries String? // comma-separated
+  targetRegions   String? // comma-separated
+  keywords        String? // comma-separated
+  tags            String? // comma-separated
+
+  archived Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  versions  StoryVersion[]
+  campaigns Campaign[]
+  jobs      SubmissionJob[]
+
+  @@index([archived])
+}
+
+// An AI-optimized (or manually written) alternate version of a story's
+// content, used to prep channel-specific submissions.
+model StoryVersion {
+  id      String @id @default(cuid())
+  storyId String
+  story   Story  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  label  String // e.g. "OpenAI draft — 2026-09-15", "Medium cut"
+  source String @default("openai") // "openai" | "manual"
+
+  headlines       String // JSON string array
+  metaDescription String?
+  keywords        String? // JSON string array
+  hashtags        String? // JSON string array
+  pressRelease    String?
+  editorPitch     String?
+
+  createdAt DateTime @default(now())
+
+  jobs SubmissionJob[]
+}
+
+// ---------------------------------------------------------------------------
+// Channels
+// ---------------------------------------------------------------------------
+
+// channelType: "press_release" | "editor_source" | "self_publishing"
+//            | "social_community" | "news_community" | "blog" | "other"
+// automationStatus: "manual_only" | "partially_automated" | "automated"
+//                  | "needs_configuration" | "disabled"
+// automationSupportLevel: "can_automate" | "can_partially_automate"
+//                        | "requires_human" | "unknown"
+model Channel {
+  id String @id @default(cuid())
+
+  name        String
+  website     String
+  submissionUrl String?
+  country     String?
+  region      String?
+  channelType String @default("other")
+  description String?
+
+  isFree          Boolean @default(true)
+  requiresAccount Boolean @default(false)
+  loginRequired   Boolean @default(false)
+
+  automationStatus       String  @default("needs_configuration")
+  automationSupportLevel String  @default("unknown")
+  enabled                 Boolean @default(true)
+  notes                   String?
+
+  lastTestedAt             DateTime?
+  lastSuccessfulSubmission DateTime?
+  failureCount              Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  automationProfile ChannelAutomationProfile?
+  browserProfile    BrowserProfile?
+  campaignChannels  CampaignChannel[]
+  jobs              SubmissionJob[]
+
+  @@index([channelType])
+  @@index([automationStatus])
+}
+
+// One reusable automation recipe per channel. Nothing in the app should
+// hard-code a website's field selectors outside of this table.
+model ChannelAutomationProfile {
+  id        String  @id @default(cuid())
+  channelId String  @unique
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  enabled       Boolean @default(false)
+  loginRequired Boolean @default(false)
+  submissionUrl String
+
+  // editorType: "textarea" | "input" | "contenteditable" | "iframe" | "markdown"
+  editorType String @default("textarea")
+
+  titleSelector    String?
+  subtitleSelector String?
+  summarySelector  String?
+  bodySelector     String?
+  tagsSelector     String?
+  categorySelector String?
+  imageSelector    String?
+  linkSelector     String?
+  authorSelector   String?
+
+  submitSelector String?
+
+  successSelector     String?
+  successUrlPattern   String?
+
+  requiresManualReview Boolean @default(true)
+
+  // Optional JSON map of logical-field -> selector for anything beyond
+  // the named columns above (see lib/automation/fieldMapping.ts).
+  fieldMappingJson String?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// A saved, authenticated Playwright browser profile for a channel, so we
+// never ask the user to type a password into this app.
+model BrowserProfile {
+  id        String  @id @default(cuid())
+  channelId String  @unique
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  profileDir String // relative path under PLAYWRIGHT_PROFILES_DIR
+
+  // status: "not_configured" | "logged_in" | "expired"
+  status String @default("not_configured")
+
+  lastVerifiedAt DateTime?
+  notes          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Campaigns
+// ---------------------------------------------------------------------------
+
+model Campaign {
+  id      String @id @default(cuid())
+  name    String
+  storyId String
+  story   Story  @relation(fields: [storyId], references: [id])
+
+  // Which of the story's saved versions (if any) this campaign's jobs
+  // should use — chosen once in the Submission Preview (section 13) and
+  // remembered here so a scheduled campaign still uses it once the
+  // scheduler actually queues the jobs later. Null means "the raw story."
+  storyVersionId String?
+
+  // status: "draft" | "scheduled" | "running" | "completed" | "cancelled"
+  status String @default("draft")
+
+  scheduledStart   DateTime?
+  minDelayMinutes  Int       @default(5)
+  maxConcurrentJobs Int      @default(2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  channels CampaignChannel[]
+  jobs     SubmissionJob[]
+}
+
+// The per-channel row of a campaign's tracker table.
+model CampaignChannel {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  channelId  String
+  channel    Channel  @relation(fields: [channelId], references: [id])
+
+  // status: "to_do" | "queued" | "in_progress" | "waiting_for_user"
+  //       | "submitted" | "published" | "failed" | "skipped"
+  status String @default("to_do")
+
+  // mode: "manual" | "assisted" | "automated"
+  automationMode String @default("manual")
+
+  submissionDate DateTime?
+  submissionUrl  String?
+  publishedUrl   String?
+  screenshotPath String?
+  notes          String?
+  error          String?
+
+  // Section 13's Submission Preview: the user's edited title/body/tags/etc
+  // for this channel, captured before the campaign was queued. JSON —
+  // see lib/types.ts's ContentOverride. Null means "use the story as-is."
+  contentOverrideJson String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobs SubmissionJob[]
+
+  @@unique([campaignId, channelId])
+}
+
+// ---------------------------------------------------------------------------
+// Submission jobs
+// ---------------------------------------------------------------------------
+
+model SubmissionJob {
+  id String @id @default(cuid())
+
+  storyId        String
+  story          Story          @relation(fields: [storyId], references: [id])
+  storyVersionId String?
+  storyVersion   StoryVersion?  @relation(fields: [storyVersionId], references: [id])
+  channelId      String
+  channel        Channel        @relation(fields: [channelId], references: [id])
+
+  campaignId        String?
+  campaign          Campaign?        @relation(fields: [campaignId], references: [id])
+  campaignChannelId String?
+  campaignChannel   CampaignChannel? @relation(fields: [campaignChannelId], references: [id])
+
+  // mode: "manual" | "assisted" | "automated"
+  mode String @default("assisted")
+
+  // status: "queued" | "paused" | "starting" | "navigating" | "filling"
+  //       | "waiting_for_user" | "submitting" | "success" | "failed" | "cancelled"
+  // "paused" is a queued job the user paused before it started (section
+  // 33) — a running job that's paused instead shows as "waiting_for_user"
+  // with manualInterventionReason "paused_by_user".
+  status String @default("queued")
+
+  manualInterventionRequired Boolean @default(false)
+  manualInterventionReason   String?
+
+  queuedAt    DateTime  @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  error          String?
+  publishedUrl   String?
+  screenshotPath String?
+  retryCount     Int     @default(0)
+  maxRetries     Int     @default(1)
+
+  // Copied from the CampaignChannel (or passed directly for an ad-hoc
+  // /api/jobs submission) at the moment this job was created, so a
+  // retry or a scheduler-queued job still uses the reviewed content
+  // rather than silently reverting to the raw story. See lib/types.ts's
+  // ContentOverride.
+  contentOverrideJson String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attempts SubmissionAttempt[]
+
+  @@index([status])
+  @@index([channelId])
+  @@index([campaignId])
+}
+
+// One log line per meaningful step of a job's run. Never store secrets
+// here — see lib/playwright/logs.ts for the redaction rules.
+model SubmissionAttempt {
+  id    String        @id @default(cuid())
+  jobId String
+  job   SubmissionJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  timestamp DateTime @default(now())
+  channel   String
+  action    String
+  // result: "success" | "failure" | "info"
+  result String @default("info")
+  error  String?
+
+  screenshotPath String?
+
+  @@index([jobId])
+}
+
+// A single settings row (id is always "default").
+model DistributionSetting {
+  id String @id @default("default")
+
+  concurrencyLimit       Int @default(2)
+  minDelaySeconds         Int @default(300)
+  maxRetries              Int @default(1)
+  cooldownAfterFailureSec Int @default(600)
+
+  updatedAt DateTime @updatedAt
+}
