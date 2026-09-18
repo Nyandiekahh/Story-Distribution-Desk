@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { StatusPill } from '@/components/StatusPill';
+import { HelpNote } from '@/components/HelpNote';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,13 @@ export default async function CampaignsPage() {
           New campaign
         </Link>
       </div>
+
+      <HelpNote>
+        <p>
+          Each record is one distribution run: a story sent to a defined set of channels. Open a campaign for
+          per-channel status and required actions.
+        </p>
+      </HelpNote>
 
       {campaigns.length === 0 ? (
         <p className="text-sm text-ink/50">No campaigns yet.</p>

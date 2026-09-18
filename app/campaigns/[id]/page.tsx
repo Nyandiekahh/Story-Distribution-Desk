@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { CampaignTracker } from '@/components/CampaignTracker';
 import { StatusPill } from '@/components/StatusPill';
+import { HelpNote } from '@/components/HelpNote';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,13 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
         </div>
         <StatusPill status={campaign.status} />
       </div>
+
+      <HelpNote>
+        <p>
+          Each row is one channel in this campaign. Waiting for you indicates a required action on that job.
+          Verify a Published result by opening its link before considering it final.
+        </p>
+      </HelpNote>
 
       <CampaignTracker campaignId={campaign.id} />
     </div>

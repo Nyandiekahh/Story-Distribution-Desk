@@ -10,7 +10,13 @@ import { profileDirNameForChannel } from './profiles';
  * has already written the authenticated cookies/local storage to disk
  * at that point, so there is nothing else to "save".
  */
-const openSessions = new Map<string, BrowserContext>();
+// Stored on globalThis (mirroring lib/jobs/runner.ts's jobRunner singleton)
+// so this survives Next.js dev-mode module reloads — without that, any
+// file edit or Fast Refresh while a login setup browser is open makes the
+// app "forget" the session even though the window is still on screen.
+const globalForLoginFlow = globalThis as unknown as { __loginSetupSessions?: Map<string, BrowserContext> };
+const openSessions = globalForLoginFlow.__loginSetupSessions ?? new Map<string, BrowserContext>();
+globalForLoginFlow.__loginSetupSessions = openSessions;
 
 export async function startLoginSetup(channelId: string) {
   if (openSessions.has(channelId)) {

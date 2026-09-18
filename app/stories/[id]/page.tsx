@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { StoryForm } from '@/components/StoryForm';
 import { OptimizePanel } from '@/components/OptimizePanel';
+import { HelpNote } from '@/components/HelpNote';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +28,14 @@ export default async function StoryDetailPage({ params }: { params: { id: string
           Distribute this story
         </Link>
       </div>
+
+      <HelpNote>
+        <p>
+          Distribute this story starts a campaign and selects the target channels. The panel below generates a
+          channel-specific version of the headline, summary, or press release; the original story record is
+          preserved and each result is saved as a version.
+        </p>
+      </HelpNote>
 
       <OptimizePanel storyId={story.id} />
 

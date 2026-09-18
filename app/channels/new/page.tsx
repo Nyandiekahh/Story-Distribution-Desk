@@ -1,4 +1,5 @@
 import { ChannelForm } from '@/components/ChannelForm';
+import { HelpNote } from '@/components/HelpNote';
 
 export default function NewChannelPage() {
   return (
@@ -9,6 +10,12 @@ export default function NewChannelPage() {
           Add a real, verifiable destination. You can configure its automation profile afterward.
         </p>
       </div>
+      <HelpNote>
+        <p>
+          Automation status defaults to Needs Configuration. The submission form mapping is completed
+          afterward, from the channel record.
+        </p>
+      </HelpNote>
       <ChannelForm />
     </div>
   );

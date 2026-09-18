@@ -86,9 +86,22 @@ class JobRunner {
   private runningCountForCampaign(campaignId: string): number {
     let count = 0;
     for (const job of this.running.values()) {
-      if (job.campaignId === campaignId) count++;
+      if (job.campaignId === campaignId && !this.gates.has(job.jobId)) count++;
     }
     return count;
+  }
+
+  /**
+   * Section 28: "If a job requires manual intervention, pause that job
+   * without blocking unrelated jobs." A job waiting on a human at a
+   * checkpoint (in `gates`) is still tracked in `running` — it's not
+   * finished, and isRunning()/activeJobIds() should keep showing it —
+   * but it must NOT keep occupying a concurrency slot indefinitely
+   * while nobody responds. This is the count that actually gates
+   * concurrency; `running.size` alone is not.
+   */
+  private activeSlotCount(): number {
+    return this.running.size - this.gates.size;
   }
 
   /** Whether `job` is allowed to start right now, given concurrency caps, the channel's failure cooldown, and the campaign's (or global) minimum delay between starts. */
@@ -113,7 +126,7 @@ class JobRunner {
     const limit = await this.concurrencyLimit();
     const { minDelayMs, cooldownMs } = await this.globalDelaysMs();
 
-    while (this.running.size < limit) {
+    while (this.activeSlotCount() < limit) {
       const idx = this.queue.findIndex((job) => this.isEligible(job, minDelayMs, cooldownMs));
       if (idx === -1) break;
       const [job] = this.queue.splice(idx, 1);
@@ -123,7 +136,7 @@ class JobRunner {
     // Something is still queued but blocked purely on a delay/cooldown
     // timer rather than on concurrency — check back once that timer is
     // likely up instead of leaving it stuck until an unrelated job ends.
-    if (this.queue.length > 0 && this.running.size < limit) {
+    if (this.queue.length > 0 && this.activeSlotCount() < limit) {
       this.scheduleDelayedRecheck();
     }
   }
@@ -162,6 +175,10 @@ class JobRunner {
       waitForHuman: (reason, message) =>
         new Promise<'continue' | 'cancel'>((resolve) => {
           this.gates.set(jobId, { reason, message, resolve });
+          // This job just stopped occupying a concurrency slot (see
+          // activeSlotCount) — let something else start right away
+          // rather than waiting on the next scheduled recheck.
+          void this.tick();
         }),
     };
     try {

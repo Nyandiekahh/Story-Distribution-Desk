@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { CampaignForm } from '@/components/CampaignForm';
+import { HelpNote } from '@/components/HelpNote';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,6 +44,12 @@ export default async function NewCampaignPage({ searchParams }: { searchParams: 
         <h1 className="text-xl font-semibold text-ink">New campaign</h1>
         <p className="mt-1 text-sm text-ink/60">Pick a story, choose channels, and review the plan before it queues.</p>
       </div>
+      <HelpNote>
+        <p>
+          On submission, a job is created and queued automatically for each selected channel. Progress is
+          tracked from the campaign record or the Queue.
+        </p>
+      </HelpNote>
       <CampaignForm
         stories={stories.map((s: { id: string; headline: string }) => ({ id: s.id, headline: s.headline }))}
         channels={channels.map((c: { id: string; name: string; channelType: string; country: string | null; automationStatus: string }) => ({

@@ -1,4 +1,5 @@
 import { StoryForm } from '@/components/StoryForm';
+import { HelpNote } from '@/components/HelpNote';
 
 export default function NewStoryPage() {
   return (
@@ -9,6 +10,12 @@ export default function NewStoryPage() {
           Write it once here — you&rsquo;ll be able to generate channel-specific versions afterward.
         </p>
       </div>
+      <HelpNote>
+        <p>
+          Headline and Body are required. Remaining fields may be completed later. Distribution channels are
+          selected in a separate step, from the story record.
+        </p>
+      </HelpNote>
       <StoryForm />
     </div>
   );

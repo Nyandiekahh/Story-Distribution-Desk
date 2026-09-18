@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { StatusPill } from '@/components/StatusPill';
 import { CHANNEL_TYPE_LABELS, CHANNEL_TYPES } from '@/lib/types';
+import { HelpNote } from '@/components/HelpNote';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +38,14 @@ export default async function ChannelsPage({
           New channel
         </Link>
       </div>
+
+      <HelpNote title="Channel directory">
+        <p>
+          Each record is a distribution destination. Automation indicates the configuration state of that
+          destination&rsquo;s submission form. Login indicates the destination requires an authenticated
+          session, set up once from the channel record.
+        </p>
+      </HelpNote>
 
       <form className="flex flex-wrap gap-3" method="get">
         <input name="q" defaultValue={q} placeholder="Search name, site, description…" className="input max-w-xs" />

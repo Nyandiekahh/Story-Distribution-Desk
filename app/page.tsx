@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getDashboardStats } from '@/lib/dashboard';
 import { JobsPanel } from '@/components/JobsPanel';
 import { StatusPill } from '@/components/StatusPill';
+import { HelpNote } from '@/components/HelpNote';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +27,16 @@ export default async function DashboardPage() {
           Everything that&rsquo;s queued, running, or waiting on you across every campaign.
         </p>
       </div>
+
+      <HelpNote title="Distribution status">
+        <p>
+          A Story is sent to a set of Channels as a Campaign. Each channel is tracked as an individual job:
+          Queued, then Running, ending in Published or Failed.
+        </p>
+        <p>
+          Waiting for you indicates a job has stopped for a required action — see the Queue for details.
+        </p>
+      </HelpNote>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
         <StatCard label="Stories" value={stats.stories} href="/stories" />

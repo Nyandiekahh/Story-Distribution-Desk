@@ -5,6 +5,7 @@ import { ChannelDetailsSection } from '@/components/ChannelDetailsSection';
 import { TestAutomationPanel } from '@/components/TestAutomationPanel';
 import { StatusPill } from '@/components/StatusPill';
 import { parseFieldMapping } from '@/lib/automation/fieldMapping';
+import { HelpNote } from '@/components/HelpNote';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,6 +40,14 @@ export default async function ChannelDetailPage({ params }: { params: { id: stri
           {channel.lastSuccessfulSubmission ? new Date(channel.lastSuccessfulSubmission).toLocaleString() : 'None yet'}
         </span>
       </div>
+
+      <HelpNote title="Channel record">
+        <p>
+          Login session applies to channels marked &ldquo;Login required.&rdquo; Setup Login opens an
+          authentication window; credentials are entered directly on the destination site and are not accessed
+          by this application. The session persists for subsequent campaigns once confirmed.
+        </p>
+      </HelpNote>
 
       <ChannelDetailsSection
         channelId={channel.id}

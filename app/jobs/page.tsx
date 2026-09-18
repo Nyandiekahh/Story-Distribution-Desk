@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import { JobsPanel } from '@/components/JobsPanel';
 import { StatusPill } from '@/components/StatusPill';
+import { HelpNote } from '@/components/HelpNote';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,14 @@ export default async function JobsPage() {
         <h1 className="text-xl font-semibold text-ink">Distribution queue</h1>
         <p className="mt-1 text-sm text-ink/60">Everything queued or running now, and what finished recently.</p>
       </div>
+
+      <HelpNote title="Queue status">
+        <p>
+          Each entry is a single channel submission. A job requiring action is stopped pending Continue, Resume,
+          or Cancel, and does not block other jobs. Failed jobs may be retried. Published jobs display a live
+          link once available; verify it before considering the submission final.
+        </p>
+      </HelpNote>
 
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink/50">Active</h2>

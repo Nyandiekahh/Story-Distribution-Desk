@@ -137,7 +137,16 @@ export const OTHER_WAIT_REASON_LABELS: Record<string, string> = {
 
 // Job statuses that mean "the browser worker owns this job and it is
 // not safe to start a second worker on the same job."
+// A job in any of these statuses is only ever tracked in the job
+// runner's in-memory queue — nothing else is watching it. Every one of
+// them, including plain 'queued' (easy to assume is "safe" since
+// nothing is running yet, but it's just as reliant on being in that
+// in-memory queue), must be reconciled back into the queue whenever the
+// server process restarts (see reconcileStaleJobsOnBoot in
+// lib/jobs/runner.ts) — otherwise a job queued right before a restart
+// sits in the database forever and is never actually run.
 export const ACTIVE_JOB_STATUSES: JobStatus[] = [
+  'queued',
   'starting',
   'navigating',
   'filling',

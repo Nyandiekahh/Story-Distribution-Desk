@@ -3,16 +3,13 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
-  AUTOMATION_STATUS_LABELS,
-  AUTOMATION_STATUSES,
-  AUTOMATION_SUPPORT_LABELS,
-  AUTOMATION_SUPPORT_LEVELS,
   CHANNEL_TYPE_LABELS,
   CHANNEL_TYPES,
   type AutomationStatus,
   type AutomationSupportLevel,
   type ChannelType,
 } from '@/lib/types';
+import { StatusPill } from './StatusPill';
 
 export interface ChannelFormValues {
   name: string;
@@ -161,41 +158,19 @@ export function ChannelForm({
         </label>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      {channelId && (
         <div>
-          <label className="field-label">Automation status</label>
-          <select
-            className="input"
-            value={values.automationStatus}
-            onChange={(e) => set('automationStatus', e.target.value as AutomationStatus)}
-          >
-            {AUTOMATION_STATUSES.filter((s) => s !== 'automated' || !channelId).map((status) => (
-              <option key={status} value={status}>
-                {AUTOMATION_STATUS_LABELS[status]}
-              </option>
-            ))}
-            {channelId && <option value="automated">{AUTOMATION_STATUS_LABELS.automated}</option>}
-          </select>
+          <label className="field-label">Distribution status</label>
+          <div className="flex items-center gap-2">
+            <StatusPill status={values.automationStatus} />
+          </div>
           <p className="mt-1 text-xs text-ink/40">
-            Automated can only be set here for a channel that has already been tested — otherwise use Test Automation
-            on the profile below.
+            Determined by testing, not chosen here. Every channel runs through the same distribution pipeline; this
+            reflects whether that has been verified to work on its own (see Test Automation below) or still needs a
+            person to complete the submission.
           </p>
         </div>
-        <div>
-          <label className="field-label">Automation support level</label>
-          <select
-            className="input"
-            value={values.automationSupportLevel}
-            onChange={(e) => set('automationSupportLevel', e.target.value as AutomationSupportLevel)}
-          >
-            {AUTOMATION_SUPPORT_LEVELS.map((level) => (
-              <option key={level} value={level}>
-                {AUTOMATION_SUPPORT_LABELS[level]}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      )}
 
       <div>
         <label className="field-label">Notes</label>

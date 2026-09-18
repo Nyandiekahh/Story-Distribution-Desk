@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { StoryRowActions } from '@/components/StoryRowActions';
+import { HelpNote } from '@/components/HelpNote';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +28,13 @@ export default async function StoriesPage({
           New story
         </Link>
       </div>
+
+      <HelpNote>
+        <p>
+          Stories are the source content for distribution. Open a story to generate channel-specific versions
+          or begin a distribution campaign.
+        </p>
+      </HelpNote>
 
       <div className="flex gap-1 text-sm">
         <Link href="/stories" className={`rounded px-2.5 py-1 ${!archived ? 'bg-accentSoft text-accent' : 'text-ink/50'}`}>

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { StatusPill } from '@/components/StatusPill';
 import { screenshotPublicUrl } from '@/lib/playwright/screenshots';
+import { HelpNote } from '@/components/HelpNote';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +28,13 @@ export default async function JobLogsPage({ params }: { params: { id: string } }
         </div>
         <StatusPill status={job.status} />
       </div>
+
+      <HelpNote title="Submission log">
+        <p>
+          A sequential record of each step taken for this submission, used to verify a Published result or
+          identify the point of failure.
+        </p>
+      </HelpNote>
 
       {job.error && <p className="rounded border border-bad/20 bg-badSoft p-3 text-sm text-bad">{job.error}</p>}
       {job.publishedUrl && (

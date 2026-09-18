@@ -9,12 +9,22 @@ interface FieldCheck {
   found: boolean;
 }
 
+interface DiscoveredField {
+  tag: string;
+  type: string;
+  id: string;
+  name: string;
+  placeholder: string;
+}
+
 interface Report {
   navigated: boolean;
   fields: FieldCheck[];
   submitSelectorFound: boolean | null;
   screenshotPath: string | null;
   error: string | null;
+  discoveredFields?: DiscoveredField[];
+  usedLoggedInSession?: boolean;
 }
 
 export function TestAutomationPanel({ channelId }: { channelId: string }) {
@@ -54,7 +64,10 @@ export function TestAutomationPanel({ channelId }: { channelId: string }) {
           {report.error && <p className="rounded border border-bad/20 bg-badSoft p-2 text-bad">{report.error}</p>}
           {report.navigated && (
             <>
-              <p className="text-ink/70">Navigated to the submission page successfully.</p>
+              <p className="text-ink/70">
+                Navigated to the submission page successfully
+                {report.usedLoggedInSession ? ', using this channel\u2019s saved login session.' : '.'}
+              </p>
               <ul className="space-y-1">
                 {report.fields.map((f) => (
                   <li key={f.field} className="flex items-center gap-2">
@@ -73,6 +86,23 @@ export function TestAutomationPanel({ channelId }: { channelId: string }) {
                   </li>
                 )}
               </ul>
+              {report.discoveredFields && report.discoveredFields.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ink/40">
+                    Fields found on this page (for filling in the selectors above)
+                  </p>
+                  <ul className="mono mt-1 space-y-0.5 text-xs text-ink/60">
+                    {report.discoveredFields.map((f, i) => (
+                      <li key={i}>
+                        {f.tag.toLowerCase()}[type={f.type}]
+                        {f.id && ` id="${f.id}"`}
+                        {f.name && ` name="${f.name}"`}
+                        {f.placeholder && ` placeholder="${f.placeholder}"`}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </>
           )}
         </div>
